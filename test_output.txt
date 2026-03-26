@@ -1,0 +1,29 @@
+00:00 +0: loading /Users/lithinknasani/Desktop/memoriz/test/screens/daily_session_screen_test.dart                                                                                                     00:01 +0: loading /Users/lithinknasani/Desktop/memoriz/test/screens/daily_session_screen_test.dart                                                                                                     00:01 +0: DailySessionScreen flow test                                                                                                                                                                 00:01 +0: DailySessionScreen flow test                                                                                                                                                                 
+══╡ EXCEPTION CAUGHT BY FLUTTER TEST FRAMEWORK ╞════════════════════════════════════════════════════
+The following TestFailure was thrown running a test:
+Expected: exactly one matching candidate
+  Actual: _TextContainingWidgetFinder:<Found 0 widgets with text containing VERSE 1 OF: []>
+   Which: means none were found but one was expected
+
+When the exception was thrown, this was the stack:
+#4      main.<anonymous closure> (file:///Users/lithinknasani/Desktop/memoriz/test/screens/daily_session_screen_test.dart:26:5)
+<asynchronous suspension>
+#5      testWidgets.<anonymous closure>.<anonymous closure> (package:flutter_test/src/widget_tester.dart:192:15)
+<asynchronous suspension>
+#6      TestWidgetsFlutterBinding._runTestBody (package:flutter_test/src/binding.dart:1059:5)
+<asynchronous suspension>
+<asynchronous suspension>
+(elided one frame from package:stack_trace)
+
+This was caught by the test expectation on the following line:
+  file:///Users/lithinknasani/Desktop/memoriz/test/screens/daily_session_screen_test.dart line 26
+The test description was:
+  DailySessionScreen flow test
+════════════════════════════════════════════════════════════════════════════════════════════════════
+00:01 +0 -1: DailySessionScreen flow test [E]                                                                                                                                                          
+  Test failed. See exception logs above.
+  The test description was: DailySessionScreen flow test
+  
+
+To run this test again: /Users/lithinknasani/development/flutter/bin/cache/dart-sdk/bin/dart test /Users/lithinknasani/Desktop/memoriz/test/screens/daily_session_screen_test.dart -p vm --plain-name 'DailySessionScreen flow test'
+00:01 +0 -1: Some tests failed.                                                                                                                                                                        

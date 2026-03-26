@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/widget_background">
+
+    <TextView
+        android:id="@+id/verse_reference"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Verse Reference"
+        android:textColor="#E6C364"
+        android:textStyle="bold"
+        android:textSize="14sp" />
+
+    <TextView
+        android:id="@+id/verse_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Verse Text will appear here."
+        android:textColor="#D6E4F9"
+        android:textSize="12sp"
+        android:maxLines="5"
+        android:ellipsize="end" />
+</LinearLayout>
