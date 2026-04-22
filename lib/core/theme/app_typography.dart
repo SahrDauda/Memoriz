@@ -66,4 +66,29 @@ class AppTypography {
     fontWeight: FontWeight.w400,
     color: AppColors.primary,
   );
+
+  static TextStyle get displaySmall => GoogleFonts.lora(
+    fontSize: 24,
+    fontWeight: FontWeight.w400,
+    color: AppColors.primary,
+  );
+
+  static TextStyle get headlineMedium => GoogleFonts.lora(
+    fontSize: 28,
+    fontWeight: FontWeight.w600,
+    color: AppColors.onSurface,
+  );
+
+  static TextStyle get titleLarge => GoogleFonts.inter(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: AppColors.onSurface,
+  );
+
+  static TextStyle get titleMedium => GoogleFonts.inter(
+    fontSize: 18,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.5,
+    color: AppColors.onSurface,
+  );
 }

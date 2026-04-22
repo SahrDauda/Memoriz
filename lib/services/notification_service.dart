@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
@@ -12,6 +13,9 @@ class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
   factory NotificationService() => _instance;
   NotificationService._internal();
+  
+  final _onNotificationTap = StreamController<String?>.broadcast();
+  Stream<String?> get onNotificationTap => _onNotificationTap.stream;
 
   final FlutterLocalNotificationsPlugin _notificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -44,7 +48,9 @@ class NotificationService {
     await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (details) {
-        // Handle notification tap
+        if (details.payload != null) {
+          _onNotificationTap.add(details.payload);
+        }
       },
     );
 
@@ -53,9 +59,22 @@ class NotificationService {
       await Permission.notification.request();
     }
     
-    // Exact alarm permission for Android 12+
+    // Explicitly check for exact alarm permission for Android 12+
     if (await Permission.scheduleExactAlarm.isDenied) {
       await Permission.scheduleExactAlarm.request();
+    }
+
+    // Process a notification that might have launched the app
+    await handleInitialLaunch();
+  }
+
+  Future<void> handleInitialLaunch() async {
+    final details = await _notificationsPlugin.getNotificationAppLaunchDetails();
+    if (details != null && details.didNotificationLaunchApp && details.notificationResponse?.payload != null) {
+      // Add a slight delay to ensure listeners are ready
+      Future.delayed(const Duration(milliseconds: 500), () {
+        _onNotificationTap.add(details.notificationResponse!.payload);
+      });
     }
   }
 
@@ -87,26 +106,41 @@ class NotificationService {
     required DateTime scheduledDate,
     String? payload,
   }) async {
-    await _notificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      tz.TZDateTime.from(scheduledDate, tz.local),
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'scheduled_alarms',
-          'Scheduled Alarms',
-          importance: Importance.max,
-          priority: Priority.high,
-        ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      matchDateTimeComponents: DateTimeComponents.time,
-      payload: payload,
-    );
+    // Defensive check for past scheduling
+    if (scheduledDate.isBefore(DateTime.now())) {
+        return;
+    }
+
+    try {
+        await _notificationsPlugin.zonedSchedule(
+          id,
+          title,
+          body,
+          tz.TZDateTime.from(scheduledDate, tz.local),
+          const NotificationDetails(
+            android: AndroidNotificationDetails(
+              'scheduled_alarms_v2', // New channel ID for fresh start
+              'Scheduled Alarms',
+              channelDescription: 'Bible verse notifications',
+              importance: Importance.max,
+              priority: Priority.high,
+              showWhen: true,
+            ),
+            iOS: DarwinNotificationDetails(
+                presentAlert: true,
+                presentBadge: true,
+                presentSound: true,
+            ),
+          ),
+          androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation:
+              UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time,
+          payload: payload,
+        );
+    } catch (e) {
+        print("ERROR: Could not schedule notification: $e");
+    }
   }
 
   Future<void> schedulePersistentAlarm({
@@ -179,12 +213,14 @@ class NotificationService {
         }
 
         final body = selection.join("\n");
+        final payload = body; // Pass the entire body for the Home Screen modal
 
         await scheduleNotification(
             id: 1000 + i,
             title: "Daily Bread",
             body: body,
             scheduledDate: scheduledTime,
+            payload: payload,
         );
     }
   }

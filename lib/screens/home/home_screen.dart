@@ -1,74 +1,236 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/stats_provider.dart';
+import '../../providers/navigation_provider.dart';
+import '../../providers/daily_verse_provider.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<HomeScreen> {
+  void _showInspirationModal(BuildContext context, String content) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Inspiration",
+      pageBuilder: (context, anim1, anim2) => Container(),
+      transitionDuration: const Duration(milliseconds: 300),
+      transitionBuilder: (context, anim1, anim2, child) {
+        return Transform.scale(
+          scale: anim1.value,
+          child: Opacity(
+            opacity: anim1.value,
+            child: AlertDialog(
+              backgroundColor: AppColors.surfaceContainerHigh,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+              title: Column(
+                children: [
+                  const Icon(Icons.auto_awesome, color: AppColors.primary, size: 32),
+                  const SizedBox(height: 12),
+                  Text("BREAD FOR THE SOUL", 
+                    style: AppTypography.labelMedium.copyWith(letterSpacing: 2, color: AppColors.primary)),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Text(
+                  content,
+                  style: GoogleFonts.lora(
+                    fontSize: 18, 
+                    fontStyle: FontStyle.italic,
+                    height: 1.6,
+                    color: AppColors.onSurface,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              actions: [
+                Center(
+                  child: TextButton(
+                    onPressed: () {
+                      ref.read(navigationProvider.notifier).clearTargetVerse();
+                      Navigator.pop(context);
+                    },
+                    child: const Text("AMEN", style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, letterSpacing: 2)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final statsAsync = ref.watch(statsProvider);
     final pendingCountAsync = ref.watch(pendingVersesCountProvider);
+    final dailyVerse = ref.watch(dailyVerseProvider);
+
+    // Listen for deep-linked verses to show the modal
+    ref.listen(navigationProvider.select((s) => s.deepLinkVerseContent), (previous, next) {
+      if (next != null) {
+        _showInspirationModal(context, next);
+      }
+    });
 
     return Scaffold(
-      backgroundColor: AppColors.surfaceDim,
+      backgroundColor: AppColors.surface,
       body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
         slivers: [
           SliverAppBar(
-            expandedHeight: 200,
-            backgroundColor: AppColors.surfaceDim,
+            expandedHeight: 520,
+            pinned: true,
+            stretch: true,
+            backgroundColor: AppColors.surface,
             flexibleSpace: FlexibleSpaceBar(
-              title: Hero(
-                tag: 'app_title',
-                child: Material(
-                  color: Colors.transparent,
-                  child: Text("MEMORIZ", style: AppTypography.displayLarge.copyWith(fontSize: 24, letterSpacing: 4)),
+              stretchModes: const [
+                StretchMode.zoomBackground,
+                StretchMode.blurBackground,
+              ],
+              background: Stack(
+                fit: StackFit.expand,
+                children: [
+                   // Image with error safe-guard
+                  Image.asset(
+                    dailyVerse.backgroundAsset,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: AppColors.surfaceContainerHigh,
+                      child: const Center(child: Icon(Icons.image_not_supported, size: 50, color: AppColors.primary)),
+                    ),
+                  ),
+                  // Dark Vignette Overlays for readability
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.black.withOpacity(0.5),
+                          Colors.transparent,
+                          AppColors.surface.withOpacity(0.7),
+                          AppColors.surface,
+                        ],
+                        stops: const [0.0, 0.4, 0.88, 1.0],
+                      ),
+                    ),
+                  ),
+                  // Hero Content
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(32, 100, 32, 40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _buildCategoryBadge("DAILY DEVOTION"),
+                        const SizedBox(height: 32),
+                        Text(
+                          dailyVerse.text,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.lora(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                            height: 1.6,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 15.0,
+                                color: Colors.black.withOpacity(0.6),
+                                offset: const Offset(2, 2),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          dailyVerse.reference,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 2,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 48),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            _HeroActionButton(
+                              icon: Icons.share_rounded,
+                              label: "Share",
+                              onTap: () {
+                                Share.share(
+                                  "${dailyVerse.text}\n\n— ${dailyVerse.reference}\n\nMemoriz App",
+                                );
+                              },
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              title: Text(
+                "MEMORIZ",
+                style: GoogleFonts.montserrat(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 4,
+                  fontSize: 18,
+                  color: AppColors.primary.withOpacity(0.9),
                 ),
               ),
               centerTitle: true,
-              background: Center(
-                child: Hero(
-                  tag: 'app_icon',
-                  child: Image.asset(
-                    'assets/images/logo_no_text.png',
-                    width: 120,
-                    height: 120,
-                    color: AppColors.primary.withOpacity(0.1), // Subtle watermark effect
-                    colorBlendMode: BlendMode.srcIn,
-                  ),
-                ),
-              ),
             ),
           ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionHeader("RECITATION READY"),
-                  const SizedBox(height: 16),
-                  pendingCountAsync.when(
-                    data: (count) => _buildDailySessionCard(context, count),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => _buildDailySessionCard(context, 0),
-                  ),
-                  const SizedBox(height: 32),
-                  _buildSectionHeader("MASTERY STATUS"),
-                  const SizedBox(height: 16),
-                  statsAsync.when(
-                    data: (stats) => _buildStatsGrid(stats),
-                    loading: () => const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => _buildStatsGrid({'confident': 0, 'inProgress': 0, 'untouched': 0}),
-                  ),
-                  const SizedBox(height: 32),
-                ],
-              ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(24, 32, 24, 100),
+            sliver: SliverList(
+              delegate: SliverChildListDelegate([
+                _buildSectionHeader("MASTERY HUB"),
+                const SizedBox(height: 16),
+                _buildStatsGrid(statsAsync),
+                const SizedBox(height: 32),
+                _buildSectionHeader("ACTIVE COMMITMENT"),
+                const SizedBox(height: 16),
+                pendingCountAsync.when(
+                  data: (count) => _buildActiveSessionCard(context, count),
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => _buildActiveSessionCard(context, 0),
+                ),
+              ]),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryBadge(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.primary.withOpacity(0.2),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+      ),
+      child: Text(
+        label,
+        style: GoogleFonts.inter(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 2,
+          color: AppColors.primary,
+        ),
       ),
     );
   }
@@ -76,67 +238,163 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: AppTypography.labelMedium.copyWith(letterSpacing: 2, color: AppColors.primary),
+      style: GoogleFonts.inter(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.5,
+        color: AppColors.onSurfaceVariant.withOpacity(0.6),
+      ),
     );
   }
 
-  Widget _buildDailySessionCard(BuildContext context, int pendingCount) {
+  Widget _buildStatsGrid(AsyncValue<Map<String, int>> statsAsync) {
+    return statsAsync.when(
+      data: (stats) => Row(
+        children: [
+          Expanded(child: _buildStatCard("Streak", "7D", Icons.local_fire_department_rounded, Colors.orange)),
+          const SizedBox(width: 12),
+          Expanded(child: _buildStatCard("Mastered", "${stats['confident'] ?? 0}", Icons.auto_awesome, AppColors.success)),
+          const SizedBox(width: 12),
+          Expanded(child: _buildStatCard("Learning", "${stats['inProgress'] ?? 0}", Icons.menu_book_rounded, AppColors.primary)),
+        ],
+      ),
+      loading: () => const SizedBox(height: 100, child: Center(child: CircularProgressIndicator())),
+      error: (_, __) => const Text("Error loading stats"),
+    );
+  }
+
+  Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(vertical: 20),
       decoration: BoxDecoration(
-        color: AppColors.surfaceMedium,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+        color: AppColors.surfaceContainerHigh,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.outlineVariant.withOpacity(0.2)),
       ),
       child: Column(
         children: [
-          Text("TODAY'S DISCIPLINE", style: AppTypography.labelSmall),
+          Icon(icon, color: color.withOpacity(0.8), size: 20),
           const SizedBox(height: 12),
-          Text("$pendingCount Verses Pending", style: AppTypography.displayMedium),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: () => Navigator.pushNamed(context, '/session'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.surfaceDim,
-              padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          Text(
+            value,
+            style: GoogleFonts.inter(
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
+              color: AppColors.onSurface,
             ),
-            child: const Text("BEGIN SESSION", style: TextStyle(fontWeight: FontWeight.bold, letterSpacing: 1.5)),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: AppColors.onSurfaceVariant,
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatsGrid(Map<String, int> stats) {
-    return Row(
-      children: [
-        Expanded(child: _buildStatTile("Confident", "${stats['confident']}", AppColors.success)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatTile("In Progress", "${stats['inProgress']}", AppColors.primary)),
-        const SizedBox(width: 16),
-        Expanded(child: _buildStatTile("Untouched", "${stats['untouched']}", AppColors.onSurface.withOpacity(0.3))),
-      ],
+  Widget _buildActiveSessionCard(BuildContext context, int count) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.primaryContainer.withOpacity(0.3),
+            AppColors.surfaceContainerHigh,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.primary.withOpacity(0.2)),
+      ),
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, '/session'),
+        borderRadius: BorderRadius.circular(24),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Recitation Ready",
+                      style: GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "You have $count verses to review today.",
+                      style: GoogleFonts.inter(
+                        fontSize: 14,
+                        color: AppColors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
+}
 
-  Widget _buildStatTile(String label, String value, Color color) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surfaceMedium,
-        borderRadius: BorderRadius.circular(12),
-      ),
+class _HeroActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _HeroActionButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
       child: Column(
         children: [
-          Text(value, style: AppTypography.displayMedium.copyWith(color: color)),
-          const SizedBox(height: 4),
-          Text(label, style: AppTypography.labelSmall.copyWith(fontSize: 10)),
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              shape: BoxShape.circle,
+              border: Border.all(color: Colors.white.withOpacity(0.1)),
+            ),
+            child: Icon(icon, color: Colors.white, size: 24),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withOpacity(0.9),
+            ),
+          ),
         ],
       ),
     );
   }
-
 }

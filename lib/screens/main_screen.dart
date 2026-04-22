@@ -7,8 +7,8 @@ import 'progress/progress_screen.dart';
 import 'settings/settings_screen.dart';
 import 'thursday/thursday_prep_screen.dart';
 import '../providers/notification_provider.dart';
-
-
+import '../providers/navigation_provider.dart';
+import '../services/notification_service.dart';
 
 class MainScreen extends ConsumerStatefulWidget {
   const MainScreen({super.key});
@@ -18,28 +18,37 @@ class MainScreen extends ConsumerStatefulWidget {
 }
 
 class _MainScreenState extends ConsumerState<MainScreen> {
-  int _selectedIndex = 0;
-
   @override
   void initState() {
     super.initState();
     // Schedule the 3-hour interval notifications
-    Future.microtask(() => ref.read(intervalNotificationProvider).scheduleDailyIntervals());
+    Future.microtask(() {
+      ref.read(intervalNotificationProvider).scheduleDailyIntervals();
+    });
+
+    // Listen for notification taps
+    NotificationService().onNotificationTap.listen((payload) {
+      if (payload != null) {
+        ref.read(navigationProvider.notifier).navigateToVerse(payload);
+      }
+    });
   }
 
   final List<Widget> _screens = [
     const HomeScreen(),
-    const LibraryScreen(),
-    const ThursdayPrepScreen(), 
+    const BibleScreen(), 
+    const MemorizScreen(),
     const ProgressScreen(),
     const SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final navState = ref.watch(navigationProvider);
+
     return Scaffold(
       body: IndexedStack(
-        index: _selectedIndex,
+        index: navState.selectedIndex,
         children: _screens,
       ),
       bottomNavigationBar: Container(
@@ -48,8 +57,8 @@ class _MainScreenState extends ConsumerState<MainScreen> {
           border: Border(top: BorderSide(color: AppColors.primary.withOpacity(0.1))),
         ),
         child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: (index) => setState(() => _selectedIndex = index),
+          currentIndex: navState.selectedIndex,
+          onTap: (index) => ref.read(navigationProvider.notifier).setSelectedIndex(index),
           backgroundColor: Colors.transparent,
           elevation: 0,
           selectedItemColor: AppColors.primary,
@@ -66,12 +75,12 @@ class _MainScreenState extends ConsumerState<MainScreen> {
             BottomNavigationBarItem(
               icon: Icon(Icons.book_outlined), 
               activeIcon: Icon(Icons.menu_book), 
-              label: "LIBRARY"
+              label: "BIBLE"
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.event_outlined), 
               activeIcon: Icon(Icons.event_available), 
-              label: "THURS"
+              label: "MEMORIZ"
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.auto_graph_outlined), 

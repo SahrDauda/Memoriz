@@ -18,7 +18,7 @@ class ScriptureMemorizerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Scripture Memorizer',
+      title: 'Memoriz',
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.darkTheme,
@@ -29,10 +29,10 @@ class ScriptureMemorizerApp extends StatelessWidget {
         '/main': (context) => const MainScreen(),
         '/session': (context) => const DailySessionScreen(),
         '/home': (context) => const HomeScreen(),
-        '/library': (context) => const LibraryScreen(),
+        '/library': (context) => const BibleScreen(),
         '/progress': (context) => const ProgressScreen(),
         '/settings': (context) => const SettingsScreen(),
-        '/thursday': (context) => const ThursdayPrepScreen(),
+        '/thursday': (context) => const MemorizScreen(),
       },
     );
   }

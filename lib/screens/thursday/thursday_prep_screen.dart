@@ -4,15 +4,15 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../providers/session_provider.dart';
 
-class ThursdayPrepScreen extends ConsumerWidget {
-  const ThursdayPrepScreen({super.key});
+class MemorizScreen extends ConsumerWidget {
+  const MemorizScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       backgroundColor: AppColors.surfaceDim,
       appBar: AppBar(
-        title: const Text("THURSDAY PREP", style: TextStyle(letterSpacing: 4)),
+        title: const Text("MEMORIZ", style: TextStyle(letterSpacing: 4)),
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
@@ -33,7 +33,7 @@ class ThursdayPrepScreen extends ConsumerWidget {
                   Icon(Icons.history_edu, size: 64, color: AppColors.primary),
                   const SizedBox(height: 24),
                   Text(
-                    "The Thursday prep session is for maintenance of your mastered verses (Familiarity 4-5).",
+                    "The Memoriz session is for maintenance of your mastered verses (Familiarity 4-5).",
                     textAlign: TextAlign.center,
                     style: AppTypography.bodySmall,
                   ),
