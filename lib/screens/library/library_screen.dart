@@ -37,6 +37,14 @@ class _BibleScreenState extends ConsumerState<BibleScreen> with SingleTickerProv
     _ttsService.onComplete = () {
       if (mounted) setState(() { _isPlaying = false; _isPaused = false; });
     };
+
+    // Auto-scroll to last saved verse after first build
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final state = ref.read(bibleProvider);
+      if (state.viewMode == BibleViewMode.verses && state.currentVerseIndex > 0) {
+        _scrollToVerse(state.currentVerseIndex);
+      }
+    });
   }
 
   void _scrollToVerse(int index) {
@@ -142,16 +150,32 @@ class _BibleScreenState extends ConsumerState<BibleScreen> with SingleTickerProv
   }
 
   Widget _buildArchiveBrowser(BibleState bibleState) {
-    if (bibleState.isLoading) return const Center(child: CircularProgressIndicator());
-
+    Widget content;
     switch (bibleState.viewMode) {
       case BibleViewMode.books:
-        return _buildBookGrid(bibleState);
+        content = _buildBookGrid(bibleState);
+        break;
       case BibleViewMode.chapters:
-        return _buildChapterSelection(bibleState);
+        content = _buildChapterSelection(bibleState);
+        break;
       case BibleViewMode.verses:
-        return _buildVerseArchive(bibleState);
+        content = _buildVerseArchive(bibleState);
+        break;
     }
+
+    if (bibleState.isLoading) {
+      return Stack(
+        children: [
+          content,
+          Container(
+            color: AppColors.surface.withOpacity(0.4),
+            child: const Center(child: CircularProgressIndicator()),
+          ),
+        ],
+      );
+    }
+    
+    return content;
   }
 
   Widget _buildBookGrid(BibleState bibleState) {
@@ -371,7 +395,10 @@ class _BibleScreenState extends ConsumerState<BibleScreen> with SingleTickerProv
             color: isActive ? AppColors.onSurface : AppColors.onSurface.withOpacity(0.8),
           ),
         ),
-        onTap: () => _showVerseDetails(context, verse, isFullBible: true),
+        onTap: () {
+          ref.read(bibleProvider.notifier).setVerseIndex(index);
+          _showVerseDetails(context, verse, isFullBible: true);
+        },
       ),
     );
   }

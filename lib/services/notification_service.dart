@@ -14,6 +14,7 @@ class NotificationService {
   factory NotificationService() => _instance;
   NotificationService._internal();
   
+  String? _lastPayload;
   final _onNotificationTap = StreamController<String?>.broadcast();
   Stream<String?> get onNotificationTap => _onNotificationTap.stream;
 
@@ -48,11 +49,17 @@ class NotificationService {
     await _notificationsPlugin.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (details) {
+        print("DEBUG: Notification tapped. Payload: ${details.payload}");
         if (details.payload != null) {
+          _lastPayload = details.payload;
           _onNotificationTap.add(details.payload);
         }
       },
     );
+
+    // Give the system a moment to settle before checking initial launch
+    await Future.delayed(const Duration(milliseconds: 200));
+    await handleInitialLaunch();
 
     // Request permissions for Android 13+ and Exact Alarms
     if (await Permission.notification.isDenied) {
@@ -63,19 +70,25 @@ class NotificationService {
     if (await Permission.scheduleExactAlarm.isDenied) {
       await Permission.scheduleExactAlarm.request();
     }
-
-    // Process a notification that might have launched the app
-    await handleInitialLaunch();
   }
 
   Future<void> handleInitialLaunch() async {
-    final details = await _notificationsPlugin.getNotificationAppLaunchDetails();
-    if (details != null && details.didNotificationLaunchApp && details.notificationResponse?.payload != null) {
-      // Add a slight delay to ensure listeners are ready
-      Future.delayed(const Duration(milliseconds: 500), () {
-        _onNotificationTap.add(details.notificationResponse!.payload);
-      });
+    try {
+      final details = await _notificationsPlugin.getNotificationAppLaunchDetails();
+      print("DEBUG: handleInitialLaunch. Details: $details, didLaunch: ${details?.didNotificationLaunchApp}");
+      if (details != null && details.didNotificationLaunchApp && details.notificationResponse?.payload != null) {
+        _lastPayload = details.notificationResponse!.payload;
+        print("DEBUG: Set initial launch payload: $_lastPayload");
+      }
+    } catch (e) {
+      print("ERROR in handleInitialLaunch: $e");
     }
+  }
+
+  String? consumePayload() {
+    final payload = _lastPayload;
+    _lastPayload = null;
+    return payload;
   }
 
   Future<void> showNotification({

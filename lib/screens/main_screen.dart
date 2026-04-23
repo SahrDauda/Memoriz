@@ -22,12 +22,20 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   void initState() {
     super.initState();
     // Schedule the 3-hour interval notifications
-    Future.microtask(() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(intervalNotificationProvider).scheduleDailyIntervals();
+      
+      // Check for initial notification launch payload
+      final initialPayload = NotificationService().consumePayload();
+      print("DEBUG: MainScreen consumed initial payload: $initialPayload");
+      if (initialPayload != null) {
+        ref.read(navigationProvider.notifier).navigateToVerse(initialPayload);
+      }
     });
 
-    // Listen for notification taps
+    // Listen for during-session notification taps
     NotificationService().onNotificationTap.listen((payload) {
+      print("DEBUG: MainScreen stream received payload: $payload");
       if (payload != null) {
         ref.read(navigationProvider.notifier).navigateToVerse(payload);
       }

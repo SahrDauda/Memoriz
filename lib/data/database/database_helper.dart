@@ -123,4 +123,16 @@ class DatabaseHelper {
       return Verse.fromMap(maps[i]);
     });
   }
+
+  Future<void> resetAllVerses() async {
+    Database db = await database;
+    await db.update('verses', {
+      'familiarityScore': 0,
+      'lastReviewed': null,
+      'nextReviewDue': null,
+      'consecutiveCorrect': 0,
+      'timesStruggled': 0,
+      'isActive': 1,
+    });
+  }
 }

@@ -6,22 +6,34 @@ class SettingsState {
   final String studyTime;
   final String selectedRingtone;
   final bool remindersEnabled;
+  final bool wednesdayPrepEnabled;
+  final bool thursdayEncouragementEnabled;
+  final bool hasCompletedOnboarding;
 
   SettingsState({
     required this.studyTime,
     required this.selectedRingtone,
     required this.remindersEnabled,
+    required this.wednesdayPrepEnabled,
+    required this.thursdayEncouragementEnabled,
+    required this.hasCompletedOnboarding,
   });
 
   SettingsState copyWith({
     String? studyTime,
     String? selectedRingtone,
     bool? remindersEnabled,
+    bool? wednesdayPrepEnabled,
+    bool? thursdayEncouragementEnabled,
+    bool? hasCompletedOnboarding,
   }) {
     return SettingsState(
       studyTime: studyTime ?? this.studyTime,
       selectedRingtone: selectedRingtone ?? this.selectedRingtone,
       remindersEnabled: remindersEnabled ?? this.remindersEnabled,
+      wednesdayPrepEnabled: wednesdayPrepEnabled ?? this.wednesdayPrepEnabled,
+      thursdayEncouragementEnabled: thursdayEncouragementEnabled ?? this.thursdayEncouragementEnabled,
+      hasCompletedOnboarding: hasCompletedOnboarding ?? this.hasCompletedOnboarding,
     );
   }
 }
@@ -31,6 +43,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     studyTime: '07:00 AM',
     selectedRingtone: 'assets/sounds/alarm.mp3',
     remindersEnabled: true,
+    wednesdayPrepEnabled: true,
+    thursdayEncouragementEnabled: true,
+    hasCompletedOnboarding: false,
   )) {
     _loadSettings();
   }
@@ -41,6 +56,9 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       studyTime: prefs.getString('study_time') ?? '07:00 AM',
       selectedRingtone: prefs.getString('selected_ringtone') ?? 'assets/sounds/alarm.mp3',
       remindersEnabled: prefs.getBool('reminders_enabled') ?? true,
+      wednesdayPrepEnabled: prefs.getBool('wednesday_prep_enabled') ?? true,
+      thursdayEncouragementEnabled: prefs.getBool('thursday_encouragement_enabled') ?? true,
+      hasCompletedOnboarding: prefs.getBool('has_completed_onboarding') ?? false,
     );
     _scheduleNextAlarm();
   }
@@ -68,6 +86,38 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     } else {
       NotificationService().cancelAll();
     }
+  }
+
+  Future<void> toggleWednesdayPrep(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('wednesday_prep_enabled', enabled);
+    state = state.copyWith(wednesdayPrepEnabled: enabled);
+  }
+
+  Future<void> toggleThursdayEncouragement(bool enabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('thursday_encouragement_enabled', enabled);
+    state = state.copyWith(thursdayEncouragementEnabled: enabled);
+  }
+
+  Future<void> resetAllSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    state = SettingsState(
+      studyTime: '07:00 AM',
+      selectedRingtone: 'assets/sounds/alarm.mp3',
+      remindersEnabled: true,
+      wednesdayPrepEnabled: true,
+      thursdayEncouragementEnabled: true,
+      hasCompletedOnboarding: false,
+    );
+    NotificationService().cancelAll();
+  }
+
+  Future<void> completeOnboarding() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_completed_onboarding', true);
+    state = state.copyWith(hasCompletedOnboarding: true);
   }
 
   Future<void> _scheduleNextAlarm() async {
