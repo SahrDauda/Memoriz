@@ -1,43 +1,50 @@
-# Memoriz 📖
+# Memoriz 📖 — Faith through Flutter
 
-**Memoriz** is a premium, open-source scripture engagement and memorization application built with Flutter. It's designed for those who want to go beyond casual reading and move towards deep, consistent retention of the Word.
+**Memoriz** is a premium, open-source scripture engagement and memorization application built with Flutter. It's designed for those who want to go beyond casual reading and move towards deep, consistent retention of the Word using modern technology.
 
-> *"This is eternal life, that they may know you, and your son Jesus Christ, whom you have sent."* — **John 17:3**
+> *"Thy word have I hid in mine heart, that I might not sin against thee."* — **Psalm 119:11**
+
+---
+
+## 🛡️ The Mission (Free & Non-Profit)
+Memoriz is a labor of love. It is **100% free** and intended to be a resource for the global Christian community. 
+**Crucial Note:** This application is not for profit. It should not be sold, monetized, or used for any commercial gain whatsoever. It is a gift from the community, to the community.
 
 ---
 
 ## ✨ Key Features
 
-*   **Interactive Typing Recitation:** Challenges the mind by requiring users to type out verses rather than just oral recitation.
-*   **Side-by-Side Comparison:** Instant visual auditing that compares your typed input against the original scripture to highlight differences.
 *   **Spaced Repetition Engine:** Intelligent study sessions that prioritize verses based on your recall history (Struggling, Almost There, Got It).
-*   **Persistent Interval Notifications:** Customizable 3-hour recurring alerts that deliver 3 random scriptures for constant meditation.
-*   **Reliable Background Alarms:** Rock-solid alarm delivery using Android's native services for consistent daily reminders.
-*   **Custom Audio Support:** Personalize your study alarms with your own devotional audio or music.
+*   **Interactive Recitation:** Type out verses word-for-word. The app provides instant visual feedback, comparing your typing against the scripture.
+*   **Premium Verse Sharing:** Turn your daily devotion into a work of art. Capture beautiful, high-resolution scripture cards with custom backgrounds for social sharing.
+*   **Continuous Meditation:** Customizable recurring notifications (every 3 hours) to keep your mind set on things above throughout the day.
+*   **True Bible Persistence:** Pick up exactly where you left off. The app remembers your translation, book, chapter, and even the exact verse you were reading—even after a restart.
+*   **Deep-Link Notifications:** Tap a "Daily Bread" notification to jump straight into a beautiful, immersive modal of the scripture.
+*   **Reliable Alarms:** Uses native Android/iOS background services to ensure your daily study reminders always fire.
 
 ---
 
 ## 🛠️ Technical Stack
 
-*   **Framework:** [Flutter](https://flutter.dev/) (Cross-platform Mobile)
-*   **State Management:** [Riverpod](https://riverpod.dev/) (Predictable & testable state)
-*   **Local Persistence:** [sqflite](https://pub.dev/packages/sqflite) (SQLite for efficient scripture indexing)
-*   **Architecture:** Clean Architecture principles with a focus on long-term maintainability.
-*   **UI/UX:** Modern, premium aesthetic with dynamic gradients and micro-animations.
+*   **Framework:** [Flutter](https://flutter.dev/) 
+*   **State Management:** [Riverpod](https://riverpod.dev/) (Robust, predictable state)
+*   **Local Persistence:** [sqflite](https://pub.dev/packages/sqflite) + [Shared Preferences]
+*   **Theming:** Glassmorphic UI with dynamic gradients and custom `GoogleFonts`.
+*   **Images:** Dynamic background generation and RepaintBoundary for high-quality sharing.
 
 ---
 
 ## 🚀 Getting Started
 
 ### Prerequisites
-*   Flutter SDK (v3.10.8 or higher)
+*   Flutter SDK (Latest stable)
 *   Android Studio / Xcode
 
 ### Installation
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/[your-username]/memoriz.git
+    git clone https://github.com/SahrDauda/Memoriz.git
     cd memoriz
     ```
 
@@ -48,7 +55,6 @@
 
 3.  **Run the application:**
     ```bash
-    # For Android
     flutter run
     ```
 
@@ -56,19 +62,19 @@
 
 ## 🏗️ Architecture Overview
 
-Memoriz follows a modular approach:
-*   **`lib/providers`**: Handles all business logic and state transitions using Riverpod.
-*   **`lib/domain/engine`**: Houses the Spaced Repetition logic.
-*   **`lib/services`**: Manages OS-level integrations (Notifications, Alarms, Permissions).
-*   **`lib/data`**: Repository pattern for local SQLite data management.
+Memoriz follows a clean, provider-based architecture:
+*   **`lib/providers`**: Business logic and state (Bible, Settings, Navigation).
+*   **`lib/services`**: OS-level integrations (Notifications, Alarms, TTS).
+*   **`lib/data`**: SQLite repository pattern and seed data.
+*   **`lib/screens`**: UI components focusing on premium UX and performance.
 
 ---
 
-## 🤝 Contributing
+## 🤝 Contributing & Feedback
 
-This is a "Building in Public" project! I welcome feedback, bug reports, and pull requests.
-*   Check out the [Issues](https://github.com/[your-username]/memoriz/issues) page for any known bugs or planned features.
-*   Feel free to fork the repo and submit a PR for new features (e.g., more translations, cloud sync, etc.).
+This is a **"Building in Public"** project. We are constantly improving!
+*   If you're a developer, pull requests are welcome (especially for new translations or cloud backup).
+*   If you're a user, tell us how it's helping you and what features you'd like to see next!
 
 ---
 
